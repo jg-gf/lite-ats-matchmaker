@@ -77,12 +77,13 @@ const SECTIONS: Record<string, RegExp> = {
 
 export function buildResume(resume: string, a: Analysis): string {
   const lines = resume.split(/\r?\n/).map((l) => l.trim());
-  const buckets: Record<string, string[]> = { header: [], resumo: [], experiencia: [], formacao: [], habilidades: [] };
-  let cur = "header";
+  type B = "header" | "resumo" | "experiencia" | "formacao" | "habilidades";
+  const buckets: Record<B, string[]> = { header: [], resumo: [], experiencia: [], formacao: [], habilidades: [] };
+  let cur: B = "header";
   for (const l of lines) {
     const clean = l.replace(/[:\-–]+$/, "").trim();
     const sec = Object.entries(SECTIONS).find(([, re]) => re.test(clean) && clean.length < 40);
-    if (sec) { cur = sec[0]; continue; }
+    if (sec) { cur = sec[0] as B; continue; }
     if (l) buckets[cur].push(l.replace(/^[•●▪■*\-–]\s*/, "- "));
   }
   // Fallback: no sections detected
