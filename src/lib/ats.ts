@@ -1,5 +1,5 @@
 const STOP = new Set(
-  "a o e é de da do das dos em no na nos nas um uma uns umas para por com sem sob sobre que se ou ao aos à às como mais menos muito ser ter estar sua seu suas seus nosso nossa nossos nossas você voce vocês nós eles elas ele ela isso este esta esse essa entre até também já não sim the and or of to in for with on at by an be is are as from will you your our we this that it vaga empresa área area atuar atuação trabalhar experiência experiencia conhecimento conhecimentos desejável desejavel requisitos responsabilidades diferencial diferenciais buscamos profissional anos ano boa bom ótima forte fortes capacidade habilidade habilidades necessário necessária obrigatório etc".split(
+  "a o e é de da do das dos em no na nos nas um uma uns umas para por com sem sob sobre que se ou ao aos à às como mais menos muito ser ter estar sua seu suas seus nosso nossa nossos nossas você voce vocês nós eles elas ele ela isso este esta esse essa entre até também já não sim the and or of to in for with on at by an be is are as from will you your our we this that it vaga empresa área area atuar atuação trabalhar experiência experiencia conhecimento conhecimentos desejável desejavel desejáveis desejaveis requisitos requisito responsabilidades responsabilidade diferencial diferenciais buscamos profissional anos ano boa bom ótima forte fortes capacidade habilidade habilidades necessário necessária obrigatório obrigatória obrigatórios obrigatorios obrigatórias vivência vivencia domínio dominio prática pratica práticas praticas sólida sólido avançado intermediário básico noções familiaridade benefícios beneficios local modelo remoto híbrido presencial contratação clt pj salário oferecemos atividades principais etc".split(
     " ",
   ),
 );
@@ -7,33 +7,51 @@ const STOP = new Set(
 const norm = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-function tokens(text: string): string[] {
-  return (text.match(/[A-Za-zÀ-ÿ0-9+#.\-/]+/g) || [])
+/** Known technologies / methodologies, matched as whole individual terms. */
+export const TECH_TERMS = [
+  "React Native", "React", "Next.js", "Vue.js", "Angular", "Svelte", "TypeScript", "JavaScript", "Node.js", "Express", "NestJS",
+  "Docker", "Kubernetes", "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQL", "NoSQL", "GraphQL", "REST",
+  "Tailwind CSS", "CSS", "HTML", "Sass", "Jest", "Cypress", "Playwright", "Vitest", "Testing Library", "Git", "GitHub", "GitLab",
+  "Scrum", "Kanban", "Agile", "CI/CD", "AWS", "Azure", "GCP", "Firebase", "Python", "Django", "Flask", "FastAPI", "Java",
+  "Spring Boot", "Kotlin", "Swift", "Golang", "Rust", "C#", ".NET", "PHP", "Laravel", "Ruby on Rails", "Linux", "Terraform",
+  "Figma", "Redux", "Zustand", "Webpack", "Vite", "Prisma", "Microsserviços", "Microservices", "TDD", "DevOps", "Power BI", "Excel",
+  "Full Stack", "Front-end", "Back-end", "Jira",
+];
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** True if the text contains the term as an individual whole term. */
+export const hasTerm = (text: string, term: string) =>
+  new RegExp(`(^|[^a-z0-9+#])${escapeRe(norm(term))}(?![a-z0-9+#]|\\.[a-z])`).test(norm(text));
+
+/** Split into segments that never cross line breaks or punctuation. */
+function segments(text: string): string[] {
+  return text.split(/\r?\n|[,;:()|•!?]|\.(?=\s|$)/).map((s) => s.trim()).filter(Boolean);
+}
+
+function tokens(seg: string): string[] {
+  return (seg.match(/[A-Za-zÀ-ÿ0-9+#.\-/]+/g) || [])
     .map((t) => t.replace(/^[.\-/]+|[.\-/]+$/g, ""))
-    .filter((t) => t.length > 2 && !STOP.has(norm(t)) && !/^\d+$/.test(t));
+    .filter((t) => t.length > 1 && !STOP.has(norm(t)) && !/^\d+$/.test(t));
 }
 
 export function extractKeywords(job: string, max = 24): string[] {
-  const toks = tokens(job);
+  const out: string[] = [];
+  const push = (w: string) => { if (!out.some((o) => norm(o) === norm(w))) out.push(w); };
+  // 1. Known technologies, each as an individual term
+  TECH_TERMS.filter((t) => hasTerm(job, t)).forEach(push);
+  // 2. Other tech-looking tokens (Vue.js, C++, camelCase, ACRONYMS), always inside one segment
   const freq = new Map<string, { w: string; n: number }>();
-  const add = (k: string, w: string, weight: number) => {
-    const e = freq.get(k);
-    if (e) e.n += weight;
-    else freq.set(k, { w, n: weight });
-  };
-  toks.forEach((t) => {
-    const tech = /[A-Z]/.test(t) || /[+#.]/.test(t);
-    add(norm(t), t, tech ? 2 : 1);
-  });
-  for (let i = 0; i < toks.length - 1; i++) {
-    const a = toks[i]!, b = toks[i + 1]!;
-    if (/^[A-Z]/.test(a) && /^[A-Z]/.test(b)) add(norm(a + " " + b), a + " " + b, 3);
-  }
-  return [...freq.values()]
-    .sort((x, y) => y.n - x.n)
-    .map((e) => e.w)
-    .filter((w, i, arr) => arr.findIndex((o) => norm(o) === norm(w)) === i)
-    .slice(0, max);
+  segments(job).forEach((seg) =>
+    tokens(seg).forEach((t) => {
+      const techy = /[+#]/.test(t) || /\.[a-z]/i.test(t) || /[a-z][A-Z]/.test(t) || /^[A-Z]{2,6}$/.test(t);
+      if (!techy || out.some((o) => norm(o).split(/\s+/).includes(norm(t)))) return;
+      const e = freq.get(norm(t));
+      if (e) e.n++; else freq.set(norm(t), { w: t, n: 1 });
+    }),
+  );
+  [...freq.values()].sort((a, b) => b.n - a.n).forEach((e) => push(e.w));
+  return out.slice(0, max);
 }
 
 export interface Analysis {
@@ -46,10 +64,9 @@ export interface Analysis {
 
 export function analyze(job: string, resume: string): Analysis {
   const kws = extractKeywords(job);
-  const r = norm(resume);
   const found: string[] = [];
   const missing: string[] = [];
-  kws.forEach((k) => (r.includes(norm(k)) ? found : missing).push(k));
+  kws.forEach((k) => (hasTerm(resume, k) ? found : missing).push(k));
   const score = kws.length ? Math.round((found.length / kws.length) * 100) : 0;
   const words = resume.trim().split(/\s+/).length;
   const hasNumbers = /\d+\s?%|\d{2,}/.test(resume);
