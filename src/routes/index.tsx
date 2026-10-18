@@ -29,12 +29,14 @@ const STEPS = ["Dados", "Diagnóstico", "Currículo ATS"];
 
 function StepMap({ current }: { current: number }) {
   return (
-    <nav aria-label="Etapas da análise" className="mx-auto mb-8 flex w-full items-center print:hidden">
+    <nav aria-label="Etapas da análise" className="mx-auto mb-12 flex w-full max-w-6xl items-center gap-3 sm:gap-6 md:mb-16 print:hidden">
       {STEPS.map((s, i) => (
-        <div key={s} className="flex items-center gap-2">
+        <div key={s} className={`flex min-w-0 items-center gap-3 sm:gap-6 ${i < STEPS.length - 1 ? "flex-1" : "shrink-0"}`}>
+          <div aria-current={i === current ? "step" : undefined} className="flex shrink-0 items-center gap-2">
           <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${i <= current ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i < current ? <Check className="h-4 w-4" /> : i + 1}</div>
           <span className={`hidden text-sm font-medium sm:inline ${i <= current ? "text-foreground" : "text-muted-foreground"}`}>{s}</span>
-          {i < STEPS.length - 1 && <div className={`mx-3 h-0.5 min-w-6 flex-1 rounded ${i < current ? "bg-primary" : "bg-border"}`} />}
+          </div>
+          {i < STEPS.length - 1 && <div aria-hidden="true" className={`h-0.5 min-w-0 flex-1 rounded ${i < current ? "bg-primary" : "bg-border"}`} />}
         </div>
       ))}
     </nav>
@@ -76,9 +78,9 @@ function Index() {
   if (view === "landing")
     return (
       <main className="min-h-screen bg-background px-5 py-14 md:py-20">
+        <StepMap current={-1} />
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-          <StepMap current={-1} />
-          <Badge variant="secondary" className="mt-12 gap-1 rounded-full px-3 py-1"><FileText className="h-3.5 w-3.5" /> ATS Match</Badge>
+          <Badge variant="secondary" className="gap-1 rounded-full px-3 py-1"><FileText className="h-3.5 w-3.5" /> ATS Match</Badge>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground md:text-6xl">
             Otimize seu currículo para passar pelos filtros de sistemas <span className="text-primary">ATS</span>.
           </h1>
@@ -99,8 +101,8 @@ function Index() {
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 md:py-12">
+      <StepMap current={step} />
       <div className="mx-auto max-w-4xl">
-        <StepMap current={step} />
 
         {step === 0 && (
           <Card className="rounded-xl">
