@@ -75,32 +75,67 @@ const SECTIONS: Record<string, RegExp> = {
   habilidades: /^(habilidades|compet[eê]ncias|skills|conhecimentos|tecnologias)/i,
 };
 
-export function buildResume(resume: string, a: Analysis): string {
+const BULLET = /^[\s•●▪■◦*·\-–—]+/;
+const ROLE = /(desenvolvedor|desenvolvedora|developer|engenheir[oa]|engineer|analista|analyst|gerente|manager|coordenador[a]?|designer|arquitet[oa]|especialista|consultor[a]?|assistente|t[eé]cnic[oa]|cientista|l[ií]der|lead|programador[a]?|product|scrum|devops|qa)\b/i;
+
+export function detectJobTitle(job: string): string {
+  const lines = job.split(/\r?\n/).map((l) => l.replace(BULLET, "").trim()).filter(Boolean);
+  const explicit = job.match(/(?:cargo|vaga|posi[cç][aã]o|t[ií]tulo)\s*[:\-–]\s*([^\n]{3,80})/i);
+  if (explicit?.[1]) return explicit[1].trim().replace(/[.;]+$/, "");
+  const roleLine = lines.find((l) => l.length <= 80 && ROLE.test(l));
+  if (roleLine) return roleLine.replace(/^(vaga( para| de)?|buscamos( um| uma)?|contratamos)\s*/i, "").replace(/[.:;]+$/, "").trim();
+  return "";
+}
+
+const isTech = (s: string) => /[A-Z+#.]/.test(s) || /\d/.test(s);
+
+export function cleanSkills(found: string[], existing: string[]): { tech: string[]; comp: string[] } {
+  const all = [...found, ...existing]
+    .map((s) => s.replace(BULLET, "").replace(/[.;:]+$/, "").trim())
+    .filter((s) => s.length > 1 && s.length <= 40);
+  const unique: string[] = [];
+  for (const s of all) if (!unique.some((u) => norm(u) === norm(s))) unique.push(s);
+  // Remove loose words that are part of a multi-word term (e.g. "Full", "Stack" when "Full Stack" exists)
+  const multi = unique.filter((s) => s.includes(" ")).map((s) => norm(s).split(/\s+/));
+  const filtered = unique.filter((s) => s.includes(" ") || !multi.some((parts) => parts.includes(norm(s))));
+  return { tech: filtered.filter(isTech), comp: filtered.filter((s) => !isTech(s)) };
+}
+
+export function buildResume(resume: string, a: Analysis, job = ""): string {
   const lines = resume.split(/\r?\n/).map((l) => l.trim());
   type B = "header" | "resumo" | "experiencia" | "formacao" | "habilidades";
   const buckets: Record<B, string[]> = { header: [], resumo: [], experiencia: [], formacao: [], habilidades: [] };
   let cur: B = "header";
   for (const l of lines) {
-    const clean = l.replace(/[:\-–]+$/, "").trim();
+    const clean = l.replace(BULLET, "").replace(/[:\-–]+$/, "").trim();
     const sec = Object.entries(SECTIONS).find(([, re]) => re.test(clean) && clean.length < 40);
     if (sec) { cur = sec[0] as B; continue; }
-    if (l) buckets[cur].push(l.replace(/^[•●▪■*\-–]\s*/, "- "));
+    if (!clean) continue;
+    buckets[cur].push(BULLET.test(l) ? `- ${clean}` : clean);
   }
-  // Fallback: no sections detected
   if (!buckets.experiencia.length && !buckets.resumo.length && buckets.header.length > 3) {
     buckets.experiencia = buckets.header.slice(3);
     buckets.header = buckets.header.slice(0, 3);
   }
-  const existingSkills = buckets.habilidades.join(", ").split(/[,;|•]/).map((s) => s.replace(/^- /, "").trim()).filter(Boolean);
-  const skills = [...a.found, ...existingSkills.filter((s) => !a.found.some((f) => norm(f) === norm(s)))];
-  const summary = buckets.resumo.length
-    ? buckets.resumo.join(" ")
-    : `Profissional com experiência comprovada${a.found.length ? ` em ${a.found.slice(0, 4).join(", ")}` : ""}, conforme descrito abaixo.`;
-  const out: string[] = [];
-  if (buckets.header.length) out.push(buckets.header.join("\n"), "");
-  out.push("RESUMO PROFISSIONAL", summary, "");
-  if (skills.length) out.push("HABILIDADES ALINHADAS", skills.map((s) => `- ${s}`).join("\n"), "");
-  if (buckets.experiencia.length) out.push("EXPERIÊNCIA PROFISSIONAL", buckets.experiencia.join("\n"), "");
-  if (buckets.formacao.length) out.push("FORMAÇÃO", buckets.formacao.join("\n"));
-  return out.join("\n").trim();
+  const existing = buckets.habilidades.flatMap((l) => l.replace(BULLET, "").split(/[,;|•]/));
+  const { tech, comp } = cleanSkills(a.found, existing);
+
+  const title = detectJobTitle(job);
+  const common = a.found.filter((f) => tech.includes(f)).slice(0, 5);
+  const topTech = common.length ? common : a.found.slice(0, 5);
+  const intro = `${title ? `Candidato(a) à posição de ${title}` : "Profissional"}${topTech.length ? `, com experiência prática em ${topTech.join(", ")}` : ""}.`;
+  const original = buckets.resumo.map((l) => l.replace(BULLET, "")).join(" ").trim();
+  const summary = original ? `${intro} ${original}` : intro;
+
+  const section = (name: string, body: string[]) => [name, ...body].join("\n");
+  const blocks: string[] = [];
+  if (buckets.header.length) blocks.push(buckets.header.map((l) => l.replace(BULLET, "")).join("\n"));
+  blocks.push(section("RESUMO PROFISSIONAL", [summary]));
+  const skillBody: string[] = [];
+  if (tech.length) skillBody.push(`- Tecnologias: ${tech.join(", ")}`);
+  if (comp.length) skillBody.push(`- Competências: ${comp.join(", ")}`);
+  if (skillBody.length) blocks.push(section("HABILIDADES RELEVANTES", skillBody));
+  if (buckets.experiencia.length) blocks.push(section("EXPERIÊNCIA PROFISSIONAL", buckets.experiencia));
+  if (buckets.formacao.length) blocks.push(section("FORMAÇÃO", buckets.formacao));
+  return blocks.join("\n\n").trim();
 }
