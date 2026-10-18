@@ -100,15 +100,10 @@ function Index() {
   return (
     <main className="min-h-screen bg-background px-4 py-8 md:py-12">
       <div className="mx-auto max-w-4xl">
-        <nav className="mb-8 flex items-center gap-2 print:hidden">
-          {STEPS.map((s, i) => (
-            <div key={s} className="flex flex-1 items-center gap-2">
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{i < step ? <Check className="h-4 w-4" /> : i + 1}</div>
-              <span className={`hidden text-sm font-medium sm:inline ${i <= step ? "text-foreground" : "text-muted-foreground"}`}>{s}</span>
-              {i < STEPS.length - 1 && <div className={`h-0.5 flex-1 rounded ${i < step ? "bg-primary" : "bg-border"}`} />}
-            </div>
-          ))}
-        </nav>
+        <StepMap current={step} />
+        <div className="mt-8">
+          <nav className="hidden" aria-hidden="true" />
+        </div>
 
         {step === 0 && (
           <Card className="rounded-xl">
