@@ -2,7 +2,7 @@
 
 > Aplicação web desenvolvida no **Lovable** para matchmaking inteligente entre currículos e descrições de vagas, gerando versões otimizadas para sistemas ATS (Applicant Tracking Systems) sem ferir a integridade profissional do candidato.
 
-🌐 **Aplicação no ar:** ttps://lite-ats-matchmaker.lovable.app/
+🌐 **Aplicação no ar:** https://lite-ats-matchmaker.lovable.app/
 
 ---
 
@@ -26,10 +26,8 @@ A aplicação resolve isso em segundos:
 Durante a criação no Lovable, a aplicação foi submetida a testes com currículos e vagas reais. Esse processo de validação permitiu refinar o algoritmo de extração de palavras-chave:
 
 ### 1. Primeira Geração (Problema Detectado)
-No primeiro teste com uma candidata altamente qualificada para a vaga (Mariana Castro), o sistema marcou apenas **38% de compatibilidade**. 
-
+No primeiro teste com uma candidata fictícia altamente qualificada para a vaga (Mariana Castro), o sistema marcou apenas **38% de compatibilidade**. 
 O teste revelou que o algoritmo estava juntando palavras separadas por ponto final e títulos de seções, criando termos inexistentes como `TypeScript Domínio` e `PostgreSQL Vivência`:
-
 ![Diagnóstico Inicial - 38% de Match](assets/match-antes.png)
 
 ---
@@ -39,7 +37,6 @@ Após um ajuste no prompt orientando o Lovable a tokenizar tecnologias de forma 
 - **89% de Match Real**;
 - **17 palavras-chave técnicas encontradas com precisão**;
 - **Apenas 2 termos faltantes identificados** (`Cypress` e `CI/CD`, que realmente não constavam no perfil testado).
-
 ![Diagnóstico Refinado - 89% de Match](assets/match-depois.png)
 
 ---
