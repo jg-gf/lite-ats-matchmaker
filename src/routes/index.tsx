@@ -52,7 +52,7 @@ function Index() {
   const reset = () => {
     setUrl(""); setJob(""); setResume(""); setResult(null); setStep(0); setView("landing"); setCopied(false);
   };
-  const optimized = result ? buildResume(resume, result) : "";
+  const optimized = result ? buildResume(resume, result, job) : "";
   const copy = async () => {
     await navigator.clipboard.writeText(optimized);
     setCopied(true);
