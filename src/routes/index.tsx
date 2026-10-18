@@ -101,9 +101,6 @@ function Index() {
     <main className="min-h-screen bg-background px-4 py-8 md:py-12">
       <div className="mx-auto max-w-4xl">
         <StepMap current={step} />
-        <div className="mt-8">
-          <nav className="hidden" aria-hidden="true" />
-        </div>
 
         {step === 0 && (
           <Card className="rounded-xl">
