@@ -75,9 +75,10 @@ function Index() {
 
   if (view === "landing")
     return (
-      <main className="min-h-screen bg-background">
-        <StepMap current={-1} />
-        <div className="mt-14 flex flex-col items-center">
+      <main className="min-h-screen bg-background px-5 py-14 md:py-20">
+        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
+          <StepMap current={-1} />
+          <Badge variant="secondary" className="mt-12 gap-1 rounded-full px-3 py-1"><FileText className="h-3.5 w-3.5" /> ATS Match</Badge>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground md:text-6xl">
             Otimize seu currículo para passar pelos filtros de sistemas <span className="text-primary">ATS</span>.
           </h1>
