@@ -37,6 +37,7 @@ Após um ajuste no prompt orientando o Lovable a tokenizar tecnologias de forma 
 - **89% de Match Real**;
 - **17 palavras-chave técnicas encontradas com precisão**;
 - **Apenas 2 termos faltantes identificados** (`Cypress` e `CI/CD`, que realmente não constavam no perfil testado).
+
 ![Diagnóstico Refinado - 89% de Match](assets/match-depois.png)
 
 ---
