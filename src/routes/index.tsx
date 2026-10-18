@@ -77,7 +77,7 @@ function Index() {
 
   if (view === "landing")
     return (
-      <main className="min-h-screen bg-background px-5 py-14 md:py-20">
+      <main className="min-h-screen bg-background px-5 pb-14 pt-6 md:pb-20 md:pt-8">
         <StepMap current={-1} />
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           <Badge variant="secondary" className="gap-1 rounded-full px-3 py-1"><FileText className="h-3.5 w-3.5" /> ATS Match</Badge>
@@ -100,7 +100,7 @@ function Index() {
     );
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 md:py-12">
+    <main className="min-h-screen bg-background px-4 pb-8 pt-4 md:pb-12 md:pt-6">
       <StepMap current={step} />
       <div className="mx-auto max-w-4xl">
 
