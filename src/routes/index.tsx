@@ -124,7 +124,12 @@ function Index() {
                 <Textarea className="min-h-64" placeholder="Cole aqui o texto completo do seu currículo..." value={resume} onChange={(e) => setResume(e.target.value)} />
               </div>
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                <Button variant="ghost" onClick={() => setView("landing")}><ArrowLeft className="mr-1 h-4 w-4" /> Início</Button>
+                <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                  <Button variant="ghost" onClick={() => setView("landing")}><ArrowLeft className="mr-1 h-4 w-4" /> Início</Button>
+                  <Button variant="outline" className="rounded-xl" disabled={(!url && !job && !resume) || loading} onClick={() => { setUrl(""); setJob(""); setResume(""); }}>
+                    <Eraser className="mr-1 h-4 w-4" /> Limpar campos
+                  </Button>
+                </div>
                 <Button size="lg" className="rounded-xl" disabled={!job.trim() || !resume.trim() || loading} onClick={run}>
                   {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analisando...</> : "Analisar Compatibilidade"}
                 </Button>
