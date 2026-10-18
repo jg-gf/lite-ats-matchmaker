@@ -26,7 +26,7 @@ export function extractKeywords(job: string, max = 24): string[] {
     add(norm(t), t, tech ? 2 : 1);
   });
   for (let i = 0; i < toks.length - 1; i++) {
-    const a = toks[i], b = toks[i + 1];
+    const a = toks[i]!, b = toks[i + 1]!;
     if (/^[A-Z]/.test(a) && /^[A-Z]/.test(b)) add(norm(a + " " + b), a + " " + b, 3);
   }
   return [...freq.values()]
